@@ -1,10 +1,13 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import productRoutes from "./api/routes/product.routes";
 import dotenv from "dotenv";
-import productRoutes from "./routes/product.routes";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
-import DatabaseService from "./config/database";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./api/middlewares/error-handler.middleware";
+import databaseService from "./config/database";
 
 // Load environment variables
 dotenv.config();
@@ -58,7 +61,7 @@ export const createApp = (): express.Application => {
 export const startServer = async (port: number): Promise<void> => {
   try {
     // Connect to database
-    await DatabaseService.connect();
+    await databaseService.getInstance().connect();
 
     // Create Express app
     const app = createApp();
@@ -82,7 +85,7 @@ const setupGracefulShutdown = (): void => {
     console.log(`\n${signal} received. Shutting down gracefully...`);
 
     try {
-      await DatabaseService.disconnect();
+      await databaseService.getInstance().disconnect();
       console.log("✅ Graceful shutdown completed");
       process.exit(0);
     } catch (error) {
