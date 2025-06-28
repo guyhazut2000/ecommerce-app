@@ -1,38 +1,64 @@
 import { PrismaClient } from "@prisma/client";
 
-class DatabaseService {
-  private static instance: PrismaClient;
+let prismaInstance: PrismaClient | null = null;
 
-  public static getInstance(): PrismaClient {
-    if (!DatabaseService.instance) {
-      DatabaseService.instance = new PrismaClient({
+export const createDatabaseService = () => {
+  const getPrismaClient = (): PrismaClient => {
+    if (!prismaInstance) {
+      prismaInstance = new PrismaClient({
         log:
           process.env.NODE_ENV === "development"
             ? ["query", "error", "warn"]
             : ["error"],
       });
     }
-    return DatabaseService.instance;
-  }
+    return prismaInstance;
+  };
 
-  public static async connect(): Promise<void> {
+  const connect = async (): Promise<void> => {
     try {
-      await DatabaseService.getInstance().$connect();
+      const prisma = getPrismaClient();
+      await prisma.$connect();
       console.log("✅ Database connected successfully");
     } catch (error) {
       console.error("❌ Database connection failed:", error);
-      process.exit(1);
+      throw error;
     }
-  }
+  };
 
-  public static async disconnect(): Promise<void> {
+  const disconnect = async (): Promise<void> => {
     try {
-      await DatabaseService.getInstance().$disconnect();
+      const prisma = getPrismaClient();
+      await prisma.$disconnect();
       console.log("✅ Database disconnected successfully");
     } catch (error) {
       console.error("❌ Database disconnection failed:", error);
+      throw error;
     }
-  }
-}
+  };
 
-export default DatabaseService;
+  const healthCheck = async (): Promise<boolean> => {
+    try {
+      const prisma = getPrismaClient();
+      await prisma.$queryRaw`SELECT 1`;
+      return true;
+    } catch (error) {
+      console.error("❌ Database health check failed:", error);
+      return false;
+    }
+  };
+
+  return {
+    getPrismaClient,
+    connect,
+    disconnect,
+    healthCheck,
+  };
+};
+
+// Singleton instance for backward compatibility
+const databaseService = createDatabaseService();
+
+export default {
+  getInstance: () => databaseService,
+};
