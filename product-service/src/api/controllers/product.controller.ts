@@ -138,4 +138,46 @@ export const productController = {
       timestamp: new Date().toISOString(),
     });
   },
+
+  detailedHealthCheck: asyncHandler(async (req: Request, res: Response) => {
+    // Check database connectivity
+    let dbStatus = "healthy";
+    let dbLatency = 0;
+
+    try {
+      const startTime = Date.now();
+      await productService.getAllProducts({ page: 1, limit: 1 });
+      dbLatency = Date.now() - startTime;
+    } catch (error) {
+      dbStatus = "unhealthy";
+    }
+
+    const healthData = {
+      success: true,
+      service: "product-service",
+      version: "1.1.0", // Updated version for CI/CD test
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || "development",
+      checks: {
+        database: {
+          status: dbStatus,
+          latency: `${dbLatency}ms`,
+        },
+        memory: {
+          used: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+          total: `${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)}MB`,
+        },
+        node: {
+          version: process.version,
+          platform: process.platform,
+        },
+      },
+    };
+
+    // Set appropriate status code based on health
+    const statusCode = dbStatus === "healthy" ? 200 : 503;
+    res.status(statusCode).json(healthData);
+  }),
 };

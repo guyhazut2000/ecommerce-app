@@ -3,8 +3,9 @@ import { productController } from "../controllers/product.controller";
 
 const router = Router();
 
-// Health check
+// Health check endpoints
 router.get("/health", productController.healthCheck);
+router.get("/health/detailed", productController.detailedHealthCheck);
 
 // Product routes
 router.get("/products", productController.getAll);

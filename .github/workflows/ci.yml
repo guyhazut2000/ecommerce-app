@@ -1,0 +1,151 @@
+name: CI Pipeline
+
+# When to run this workflow
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+# Define environment variables
+env:
+  NODE_VERSION: "18"
+
+jobs:
+  # Job 1: Test Product Service
+  test-product-service:
+    name: Test Product Service
+    runs-on: ubuntu-latest
+
+    # Set up PostgreSQL service for testing
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: product-service/package-lock.json
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        working-directory: ./product-service
+        run: npm ci
+
+      # Step 4: Run Prisma migrations
+      - name: Run database migrations
+        working-directory: ./product-service
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+        run: |
+          npx prisma migrate deploy
+          npx prisma generate
+
+      # Step 5: Run linting
+      - name: Run ESLint
+        working-directory: ./product-service
+        run: npm run lint
+
+      # Step 6: Run tests
+      - name: Run tests
+        working-directory: ./product-service
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+          NODE_ENV: test
+        run: npm run test:ci
+
+      # Step 7: Build the application
+      - name: Build application
+        working-directory: ./product-service
+        run: npm run build
+
+  # Job 2: Test Web Frontend
+  test-web-frontend:
+    name: Test Web Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        working-directory: ./web
+        run: npm ci
+
+      # Step 4: Run linting
+      - name: Run ESLint
+        working-directory: ./web
+        run: npm run lint
+
+      # Step 5: Build the application
+      - name: Build Next.js app
+        working-directory: ./web
+        env:
+          NEXT_PUBLIC_PRODUCT_SERVICE_API_URL: http://localhost:4001
+        run: npm run build
+
+  # Job 3: Build Docker Images (runs only if tests pass)
+  build-docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test-product-service, test-web-frontend]
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3: Build product service image
+      - name: Build Product Service Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./product-service
+          file: ./product-service/Dockerfile
+          push: false
+          tags: product-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Step 4: Build web frontend image
+      - name: Build Web Frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          file: ./web/Dockerfile
+          push: false
+          tags: web-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
