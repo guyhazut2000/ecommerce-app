@@ -57,7 +57,7 @@ jobs:
 
       # Step 5: Build and push product service image
       - name: Build and push Product Service
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./product-service
           file: ./product-service/Dockerfile
@@ -82,7 +82,7 @@ jobs:
 
       # Step 7: Build and push web frontend image
       - name: Build and push Web Frontend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./web
           file: ./web/Dockerfile
