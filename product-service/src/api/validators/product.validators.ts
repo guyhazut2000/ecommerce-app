@@ -1,10 +1,4 @@
 import { z } from "zod";
-import type { Product as PrismaProduct } from "@prisma/client";
-import type {
-  CreateProductDto,
-  UpdateProductDto,
-  ProductQueryParams,
-} from "../../types/product.types";
 
 // ===================================
 // PRISMA-ALIGNED ZOD SCHEMAS

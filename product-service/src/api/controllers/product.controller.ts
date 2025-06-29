@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
+
 import { productService } from "../../services/product.service";
 import { asyncHandler } from "../middlewares/error-handler.middleware";
 import {
   createProductSchema,
-  updateProductSchema,
-  productQuerySchema,
   productIdSchema,
+  productQuerySchema,
+  updateProductSchema,
 } from "../validators/product.validators";
 
 export const productController = {
@@ -148,7 +149,7 @@ export const productController = {
       const startTime = Date.now();
       await productService.getAllProducts({ page: 1, limit: 1 });
       dbLatency = Date.now() - startTime;
-    } catch (error) {
+    } catch {
       dbStatus = "unhealthy";
     }
 

@@ -1,9 +1,6 @@
 import type { Product } from "@prisma/client";
-import type {
-  ProductResponse,
-  ProductEntity,
-  PaginationMeta,
-} from "./product.types";
+
+import type { PaginationMeta, ProductResponse } from "./product.types";
 
 // ===================================
 // BASE API RESPONSE TYPES

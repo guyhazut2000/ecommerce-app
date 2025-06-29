@@ -1,13 +1,13 @@
 import {
-  getAllProducts,
-  getProductById,
   createProduct,
-  updateProduct,
   deleteProduct,
-  updateProductStock,
-  getProductsByCategory,
+  getAllProducts,
   getLowStockProducts,
+  getProductById,
+  getProductsByCategory,
   reserveProductStock,
+  updateProduct,
+  updateProductStock,
 } from "../../services/product.service";
 
 // Mock the repository module

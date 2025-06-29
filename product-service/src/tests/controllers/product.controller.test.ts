@@ -1,6 +1,7 @@
-import request from "supertest";
-import { createApp } from "../../app";
 import { Application } from "express";
+import request from "supertest";
+
+import { createApp } from "../../app";
 
 describe("Product Controller", () => {
   let app: Application;

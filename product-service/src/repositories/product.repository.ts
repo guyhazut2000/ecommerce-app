@@ -1,15 +1,16 @@
-import databaseService from "../config/database";
 import type { Product } from "@prisma/client";
-import type {
-  CreateProductInput,
-  UpdateProductInput,
-  ProductQueryParams,
-  ProductResponse,
-} from "../types/product.types";
+
+import databaseService from "../config/database";
 import {
   toProductResponse,
   toProductResponseArray,
 } from "../types/api-response.types";
+import type {
+  CreateProductInput,
+  ProductQueryParams,
+  ProductResponse,
+  UpdateProductInput,
+} from "../types/product.types";
 
 // ===================================
 // DATABASE CLIENT INSTANCE
@@ -111,7 +112,7 @@ export const update = async (
       data,
     });
     return toProductResponse(product);
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -128,7 +129,7 @@ export const deleteProduct = async (
       data: { inStock: false },
     });
     return toProductResponse(product);
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -144,7 +145,7 @@ export const hardDelete = async (
       where: { id },
     });
     return toProductResponse(product);
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -194,7 +195,7 @@ export const updateStock = async (
       },
     });
     return toProductResponse(product);
-  } catch (error) {
+  } catch {
     return null;
   }
 };

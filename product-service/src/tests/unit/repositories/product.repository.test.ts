@@ -20,14 +20,14 @@ jest.mock("../../../config/database", () => ({
 }));
 
 import {
-  productRepository,
-  create,
-  findById,
-  findAll,
-  update,
-  deleteProduct,
-  findBySku,
   checkStockAvailability,
+  create,
+  deleteProduct,
+  findAll,
+  findById,
+  findBySku,
+  productRepository,
+  update,
 } from "../../../repositories/product.repository";
 
 // Mock the response helper functions

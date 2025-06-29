@@ -1,9 +1,9 @@
 import { productRepository } from "../repositories/product.repository";
 import type {
   CreateProductInput,
-  UpdateProductDto,
   ProductQueryParams,
   ProductResponse,
+  UpdateProductDto,
 } from "../types/product.types";
 
 // ===================================
