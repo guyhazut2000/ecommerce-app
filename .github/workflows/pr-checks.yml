@@ -1,0 +1,149 @@
+name: Pull Request Checks
+
+# Only run on pull requests
+on:
+  pull_request:
+    branches: [main, master, develop]
+
+env:
+  NODE_VERSION: "18"
+
+jobs:
+  # Job 1: Code Quality Checks
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js for product service
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Step 3: Check product service code quality
+      - name: Install product service dependencies
+        working-directory: ./product-service
+        run: npm ci
+
+      - name: Run product service linter
+        working-directory: ./product-service
+        run: npm run lint
+
+      - name: Check product service formatting
+        working-directory: ./product-service
+        run: npm run format:check
+
+      # Step 4: Check web frontend code quality
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Run web linter
+        working-directory: ./web
+        run: npm run lint
+
+  # Job 2: Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Run security audit for product service
+      - name: Security audit - Product Service
+        working-directory: ./product-service
+        run: npm audit --audit-level high
+
+      # Step 3: Run security audit for web frontend
+      - name: Security audit - Web Frontend
+        working-directory: ./web
+        run: npm audit --audit-level high
+
+  # Job 3: Build Test
+  build-test:
+    name: Build Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Step 3: Test product service build
+      - name: Install product service dependencies
+        working-directory: ./product-service
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: ./product-service
+        run: npx prisma generate
+
+      - name: Build product service
+        working-directory: ./product-service
+        run: npm run build
+
+      # Step 4: Test web frontend build
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Build web frontend
+        working-directory: ./web
+        env:
+          NEXT_PUBLIC_PRODUCT_SERVICE_API_URL: http://localhost:4001
+        run: npm run build
+
+  # Job 4: PR Size Check
+  pr-size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 2: Check PR size
+      - name: Check PR size
+        run: |
+          # Count changed lines
+          CHANGED_LINES=$(git diff --stat origin/main...HEAD | tail -1 | awk '{print $4}' | sed 's/[^0-9]*//g')
+          echo "Changed lines: $CHANGED_LINES"
+
+          # Warn if PR is too large
+          if [ "$CHANGED_LINES" -gt 500 ]; then
+            echo "⚠️ Warning: This PR is quite large ($CHANGED_LINES lines). Consider breaking it into smaller PRs."
+          else
+            echo "✅ PR size looks good!"
+          fi

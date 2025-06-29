@@ -1,4 +1,4 @@
-import type { Product, Prisma } from "@prisma/client";
+import type { Prisma,Product } from "@prisma/client";
 
 // ===================================
 // CORE PRISMA-BASED TYPES

@@ -1,10 +1,10 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
+
 import {
-  productSchema,
   createProductSchema,
-  updateProductSchema,
-  productQuerySchema,
   productIdSchema,
+  productQuerySchema,
+  updateProductSchema,
 } from "../../../api/validators/product.validators";
 
 describe("Product Validators", () => {

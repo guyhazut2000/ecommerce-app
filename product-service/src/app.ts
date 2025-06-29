@@ -1,12 +1,13 @@
-import express from "express";
 import cors from "cors";
-import helmet from "helmet";
-import productRoutes from "./api/routes/product.routes";
 import dotenv from "dotenv";
+import express from "express";
+import helmet from "helmet";
+
 import {
   errorHandler,
   notFoundHandler,
 } from "./api/middlewares/error-handler.middleware";
+import productRoutes from "./api/routes/product.routes";
 import databaseService from "./config/database";
 
 // Load environment variables
