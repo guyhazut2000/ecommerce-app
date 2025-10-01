@@ -28,7 +28,7 @@ jobs:
     steps:
       # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Step 2: Log in to Container Registry
       - name: Log in to Container Registry
@@ -103,7 +103,7 @@ jobs:
     steps:
       # Step 1: Checkout code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Step 2: Deploy via SSH (example)
       # You would customize this based on your deployment target
